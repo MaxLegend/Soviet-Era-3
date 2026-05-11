@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "soviet:regtile/tile_reg_brown_br"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "soviet:blocks/regtile/tile_reg_brown_br"
+}

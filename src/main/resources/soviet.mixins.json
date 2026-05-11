@@ -1,0 +1,11 @@
+{
+  "required": true,
+  "package": "ru.tesmio.soviet.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

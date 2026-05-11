@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": { "model": "soviet:block/dieselgen/tank", "y": 0 },
+        "facing=south": { "model": "soviet:block/dieselgen/tank", "y": 180 },
+        "facing=east":  { "model": "soviet:block/dieselgen/tank", "y": 90 },
+        "facing=west":  { "model": "soviet:block/dieselgen/tank", "y": 270 }
+    }
+}
