@@ -30,9 +30,9 @@ import java.util.List;
  *   - Ctrl + ПКМ по коннектору → отключает все провода от него (пакет на сервер)
  *   - Shift + ПКМ в воздух → очищает сохранённую позицию
  */
-public class PowerCableItem extends Item {
+public class ItemPowerCable extends Item {
 
-    public PowerCableItem(Properties properties) {
+    public ItemPowerCable(Properties properties) {
         super(properties);
     }
 
@@ -64,7 +64,7 @@ public class PowerCableItem extends Item {
         ItemStack stack = context.getItemInHand();
         BlockEntity be = level.getBlockEntity(clickedPos);
 
-        if (!(be instanceof BlockEntityPowerConnector connector)) return InteractionResult.PASS;
+        if (!(be instanceof EntityBlockPowerConnector connector)) return InteractionResult.PASS;
 
         CompoundTag tag = stack.getOrCreateTag();
 
@@ -85,7 +85,7 @@ public class PowerCableItem extends Item {
     }
 
     private InteractionResult handleShiftClick(Level level, Player player, BlockPos clickedPos,
-                                               BlockEntityPowerConnector connector, CompoundTag tag, ItemStack stack) {
+                                               EntityBlockPowerConnector connector, CompoundTag tag, ItemStack stack) {
 
         if (tag.contains("LinkX")) {
             BlockPos startPos = new BlockPos(tag.getInt("LinkX"), tag.getInt("LinkY"), tag.getInt("LinkZ"));
@@ -106,7 +106,7 @@ public class PowerCableItem extends Item {
                 }
 
                 BlockEntity startBe = level.getBlockEntity(startPos);
-                if (startBe instanceof BlockEntityPowerConnector startConnector) {
+                if (startBe instanceof EntityBlockPowerConnector startConnector) {
                     // Создаём двустороннее соединение
                     startConnector.addConnection(clickedPos);
                     startConnector.setChanged();

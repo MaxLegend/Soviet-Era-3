@@ -1,8 +1,12 @@
 {
-    "variants": {
-        "facing=north": { "model": "soviet:block/dieselgen/generator", "y": 0 },
-        "facing=south": { "model": "soviet:block/dieselgen/generator", "y": 180 },
-        "facing=east":  { "model": "soviet:block/dieselgen/generator", "y": 90 },
-        "facing=west":  { "model": "soviet:block/dieselgen/generator", "y": 270 }
-    }
+  "variants": {
+    "facing=north,powered=false": { "model": "soviet:block/dieselgen/generator" },
+    "facing=north,powered=true":  { "model": "soviet:block/dieselgen/generator" },
+    "facing=south,powered=false": { "model": "soviet:block/dieselgen/generator", "y": 180 },
+    "facing=south,powered=true":  { "model": "soviet:block/dieselgen/generator", "y": 180 },
+    "facing=west,powered=false":  { "model": "soviet:block/dieselgen/generator", "y": 270 },
+    "facing=west,powered=true":   { "model": "soviet:block/dieselgen/generator", "y": 270 },
+    "facing=east,powered=false":  { "model": "soviet:block/dieselgen/generator", "y": 90 },
+    "facing=east,powered=true":   { "model": "soviet:block/dieselgen/generator", "y": 90 }
+  }
 }

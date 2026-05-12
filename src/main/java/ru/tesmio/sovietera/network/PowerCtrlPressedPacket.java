@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
-import ru.tesmio.sovietera.blocks.devices.cable.BlockEntityPowerConnector;
+import ru.tesmio.sovietera.blocks.devices.cable.EntityBlockPowerConnector;
 
 
 import java.util.ArrayList;
@@ -38,12 +38,12 @@ public class PowerCtrlPressedPacket {
             ServerPlayer player = context.getSender();
             if (player != null) {
                 BlockEntity be = player.level().getBlockEntity(packet.pos);
-                if (be instanceof BlockEntityPowerConnector connector) {
+                if (be instanceof EntityBlockPowerConnector connector) {
                     // Удаляем все соединения с обоих сторон
                     List<BlockPos> connections = new ArrayList<>(connector.getConnections());
                     for (BlockPos other : connections) {
                         BlockEntity otherBe = player.level().getBlockEntity(other);
-                        if (otherBe instanceof BlockEntityPowerConnector otherConnector) {
+                        if (otherBe instanceof EntityBlockPowerConnector otherConnector) {
                             otherConnector.removeConnection(packet.pos);
                             otherConnector.setChanged();
                             player.level().sendBlockUpdated(other, otherConnector.getBlockState(),

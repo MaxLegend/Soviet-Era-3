@@ -12,10 +12,10 @@ import net.minecraftforge.registries.RegistryObject;
 import ru.tesmio.sovietera.SovietEra;
 import ru.tesmio.sovietera.blocks.baseblock.BaseBlock;
 import ru.tesmio.sovietera.blocks.baseblock.subtype.*;
-import ru.tesmio.sovietera.blocks.devices.generator.BlockElectroGenerator;
+import ru.tesmio.sovietera.blocks.devices.generator.BlockDieselEngine;
 import ru.tesmio.sovietera.blocks.devices.generator.BlockDieselTank;
-import ru.tesmio.sovietera.blocks.devices.generator.BlockDieselElectroGenerator;
-import ru.tesmio.sovietera.blocks.devices.cable.PowerConnectorBlock;
+import ru.tesmio.sovietera.blocks.devices.generator.BlockElectroGenerator;
+import ru.tesmio.sovietera.blocks.devices.cable.BlockPowerConnector;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
@@ -279,10 +279,10 @@ public class BlocksSE {
                 .noOcclusion();
 
 
-        ELECTRO_GENERATOR = registerNDBlock("dieselgen/engine", () -> new BlockElectroGenerator(DIESEL_GEN_PROPS, 0.0f));
+        DIESEL_ENGINE = registerNDBlock("dieselgen/engine", () -> new BlockDieselEngine(DIESEL_GEN_PROPS, 0.0f));
         DIESEL_TANK = registerNDBlock("dieselgen/tank", () -> new BlockDieselTank(DIESEL_GEN_PROPS, 0.0f));
-        DIESEL_ELECTRO_GENERATOR = registerNDBlock("dieselgen/generator", () -> new BlockDieselElectroGenerator(DIESEL_GEN_PROPS, 0.0f));
-        POWER_CONNECTOR = registerOnlyCustomBlock("dieselgen/power_connector", PowerConnectorBlock::new);
+        ELECTRO_GENERATOR = registerNDBlock("dieselgen/generator", () -> new BlockElectroGenerator(DIESEL_GEN_PROPS, 0.0f));
+        POWER_CONNECTOR = registerOnlyCustomBlock("dieselgen/power_connector", BlockPowerConnector::new);
 
     }
 
@@ -373,9 +373,9 @@ public class BlocksSE {
 
 
     // --- Diesel Generator ---
-    public static RegistryObject<Block> ELECTRO_GENERATOR;
+    public static RegistryObject<Block> DIESEL_ENGINE;
     public static RegistryObject<Block> DIESEL_TANK;
-    public static RegistryObject<Block> DIESEL_ELECTRO_GENERATOR;
+    public static RegistryObject<Block> ELECTRO_GENERATOR;
     public static RegistryObject<Block> POWER_CONNECTOR;
 
     // ===================== Методы регистрации =====================

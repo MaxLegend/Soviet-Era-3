@@ -17,18 +17,18 @@ import ru.tesmio.sovietera.core.MenuTypesSE;
  * Минимальная реализация для будущего GUI.
  * Пока без кастомных слотов — взаимодействие с баком через ПКМ ведром.
  */
-public class ElectroGeneratorContainer extends AbstractContainerMenu {
+public class ContainerDieselEngine extends AbstractContainerMenu {
 
     private final BlockEntity blockEntity;
     private final ContainerLevelAccess levelAccess;
 
     // Клиентский конструктор
-    public ElectroGeneratorContainer(int containerId, Inventory playerInv, FriendlyByteBuf additionalData) {
+    public ContainerDieselEngine(int containerId, Inventory playerInv, FriendlyByteBuf additionalData) {
         this(containerId, playerInv, playerInv.player.level().getBlockEntity(additionalData.readBlockPos()));
     }
 
     // Серверный конструктор
-    public ElectroGeneratorContainer(int containerId, Inventory playerInv, BlockEntity blockEntity) {
+    public ContainerDieselEngine(int containerId, Inventory playerInv, BlockEntity blockEntity) {
         super(MenuTypesSE.ELECTRO_GENERATOR_MENU.get(), containerId);
         this.blockEntity = blockEntity;
         this.levelAccess = ContainerLevelAccess.create(blockEntity.getLevel(), blockEntity.getBlockPos());
@@ -72,7 +72,7 @@ public class ElectroGeneratorContainer extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player player) {
-        return stillValid(this.levelAccess, player, BlocksSE.ELECTRO_GENERATOR.get());
+        return stillValid(this.levelAccess, player, BlocksSE.DIESEL_ENGINE.get());
     }
 
     public BlockEntity getBlockEntity() {

@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -43,20 +42,29 @@ import java.util.List;
  * При изменении соседних блоков обновляет питание в сети.
  * При удалении — корректно очищает все соединения.
  */
-public class PowerConnectorBlock extends BaseBlock implements EntityBlock {
+public class BlockPowerConnector extends BaseBlock implements EntityBlock {
 
     private static final VoxelShape SHAPE = Shapes.or(
-            Shapes.create(new AABB(7.75/16.0, 8.0/16.0, 14.5/16.0, 8.25/16.0, 8.75/16.0, 15.0/16.0)),  // тонкий стержень
-            Shapes.create(new AABB(7.25/16.0, 8.5/16.0, 14.0/16.0, 8.75/16.0, 10.1/16.0, 15.5/16.0)),   // основное тело
-            Shapes.create(new AABB(7.5/16.0, 10.1/16.0, 14.25/16.0, 8.5/16.0, 10.5/16.0, 15.25/16.0)),  // верхняя крышка
-            Shapes.create(new AABB(7.75/16.0, 7.5/16.0, 14.5/16.0, 8.25/16.0, 8.0/16.0, 16.0/16.0))     // длинный стержень (обрезан)
+            Block.box(7.75, 8, 14.5, 8.25, 8.75, 15),       // элемент 0: тонкий стержень
+            Block.box(6.75, 8, 13.5, 9.25, 10.6, 16),         // элемент 1: основное тело
+            Block.box(7, 10.6, 13.75, 9, 11, 15.75),           // элемент 2: верхняя крышка
+            Block.box(7.5, 7, 14.5, 8.5, 8, 16)                // элемент 3: длинный стержень (обрезан на границе блока)
     );
-
+    private static final VoxelShape SHAPE_UP = Shapes.or(
+            Block.box(6.75, 1, 6.75, 9.25, 3.6, 9.25),    // Основное тело
+            Block.box(7, 3.6, 7, 9, 4, 9),               // Верхняя крышка
+            Block.box(7.5, 0, 7.5, 8.5, 2, 8.5)          // Стержень (обрезан до границы блока)
+    );
+    private static final VoxelShape SHAPE_DOWN = Shapes.or(
+            Block.box(6.75, 12.4, 6.75, 9.25, 15, 9.25),  // Тело
+            Block.box(7, 12, 7, 9, 12.4, 9),             // Крышка
+            Block.box(7.5, 14, 7.5, 8.5, 16, 8.5)        // Стержень
+    );
     public static final DirectionProperty ATTACHED_FACE = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final BooleanProperty BUNDLED = BooleanProperty.create("bundled");
 
-    public PowerConnectorBlock() {
+    public BlockPowerConnector() {
         super(BlockBehaviour.Properties
                 .of()
                 .strength(2.5F, 2.0F)
@@ -76,7 +84,7 @@ public class PowerConnectorBlock extends BaseBlock implements EntityBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new BlockEntityPowerConnector(pos, state);
+        return new EntityBlockPowerConnector(pos, state);
     }
     @Override
     public float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
@@ -96,7 +104,7 @@ public class PowerConnectorBlock extends BaseBlock implements EntityBlock {
             Direction facing = state.getValue(ATTACHED_FACE);
 
             // Получаем точку крепления из рендерера
-            Vec3 offset = PowerCableRenderer.getConnectionOffset(facing);
+            Vec3 offset = RendererPowerCable.getConnectionOffset(facing);
 
             double x = pos.getX() + offset.x;
             double y = pos.getY() + offset.y;
@@ -136,8 +144,8 @@ public class PowerConnectorBlock extends BaseBlock implements EntityBlock {
             case SOUTH -> ShapesUtil.rotate(SHAPE, ShapesUtil.RotationDegree.D180);
             case EAST  -> ShapesUtil.rotate(SHAPE, ShapesUtil.RotationDegree.D270);
             case WEST  -> ShapesUtil.rotate(SHAPE, ShapesUtil.RotationDegree.D90);
-            case UP    -> ShapesUtil.rotateAroundXCCW(SHAPE);
-            case DOWN  -> ShapesUtil.rotateAroundXCW(SHAPE);
+            case UP    -> SHAPE_UP;
+            case DOWN  -> SHAPE_DOWN;
         };
     }
 
@@ -149,7 +157,7 @@ public class PowerConnectorBlock extends BaseBlock implements EntityBlock {
     public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
         if (!level.isClientSide) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof BlockEntityPowerConnector connector) {
+            if (be instanceof EntityBlockPowerConnector connector) {
                 connector.updatePoweredInNetwork();
             }
         }
@@ -159,7 +167,7 @@ public class PowerConnectorBlock extends BaseBlock implements EntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) return null;
         return type == BlockEntitiesSE.POWER_CONNECTOR.get()
-                ? (lvl, pos, st, be) -> BlockEntityPowerConnector.tick(lvl, pos, st, be)
+                ? (lvl, pos, st, be) -> EntityBlockPowerConnector.tick(lvl, pos, st, be)
                 : null;
     }
 
@@ -170,19 +178,19 @@ public class PowerConnectorBlock extends BaseBlock implements EntityBlock {
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof BlockEntityPowerConnector connector) {
+            if (be instanceof EntityBlockPowerConnector connector) {
                 // Сначала собираем все чужие коннекторы
-                List<BlockEntityPowerConnector> others = new ArrayList<>();
+                List<EntityBlockPowerConnector> others = new ArrayList<>();
                 for (BlockPos otherPos : new ArrayList<>(connector.getConnections())) {
                     BlockEntity otherBe = level.getBlockEntity(otherPos);
-                    if (otherBe instanceof BlockEntityPowerConnector otherConnector) {
+                    if (otherBe instanceof EntityBlockPowerConnector otherConnector) {
                         others.add(otherConnector);
                     }
                 }
                 // Сначала очищаем свои соединения
                 connector.clearConnections();
                 // Потом удаляем себя из чужих списков
-                for (BlockEntityPowerConnector other : others) {
+                for (EntityBlockPowerConnector other : others) {
                     other.removeConnection(pos);
                 }
             }

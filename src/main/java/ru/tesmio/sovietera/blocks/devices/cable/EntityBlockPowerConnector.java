@@ -10,7 +10,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import ru.tesmio.sovietera.blocks.devices.generator.BlockEntityElectroGenerator;
+import ru.tesmio.sovietera.blocks.devices.generator.EntityBlockDieselEngine;
 import ru.tesmio.sovietera.core.BlockEntitiesSE;
 
 import java.util.*;
@@ -26,7 +26,7 @@ import java.util.*;
  * дизель-генератором (BlockEntityElectroGenerator.isPowered() == true),
  * вся сеть получает питание — POWERED = true на всех узлах.
  */
-public class BlockEntityPowerConnector extends BlockEntity {
+public class EntityBlockPowerConnector extends BlockEntity {
 
     /** Максимальная дистанция одного провода (в блоках) */
     private static final int MAX_CONNECTION_DISTANCE = 24;
@@ -46,7 +46,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
     private int ticksWithoutPower = 0;
     private boolean cachedPowered = false;
 
-    public BlockEntityPowerConnector(BlockPos pos, BlockState state) {
+    public EntityBlockPowerConnector(BlockPos pos, BlockState state) {
         super(BlockEntitiesSE.POWER_CONNECTOR.get(), pos, state);
     }
 
@@ -72,7 +72,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
         updateBundledState();
         // Сливаем сети при новом соединении
         BlockEntity be = level.getBlockEntity(target);
-        if (be instanceof BlockEntityPowerConnector other) {
+        if (be instanceof EntityBlockPowerConnector other) {
             mergeWithOtherNetwork(other);
         }
     }
@@ -90,7 +90,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
             invalidateNetwork();
 
             BlockEntity be = level.getBlockEntity(target);
-            if (be instanceof BlockEntityPowerConnector cable) {
+            if (be instanceof EntityBlockPowerConnector cable) {
                 cable.invalidateNetwork();
             }
         }
@@ -110,7 +110,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
             if (!visited.add(current)) continue;
 
             BlockEntity be = level.getBlockEntity(current);
-            if (be instanceof BlockEntityPowerConnector cable) {
+            if (be instanceof EntityBlockPowerConnector cable) {
                 cable.networkDirty = true;
                 cable.setChanged();
                 for (BlockPos neighbor : cable.getConnectedCables()) {
@@ -129,9 +129,9 @@ public class BlockEntityPowerConnector extends BlockEntity {
         if (level == null || level.isClientSide) return;
         BlockState state = getBlockState();
         boolean hasConnections = !connections.isEmpty();
-        if (state.hasProperty(PowerConnectorBlock.BUNDLED)
-                && state.getValue(PowerConnectorBlock.BUNDLED) != hasConnections) {
-            level.setBlock(worldPosition, state.setValue(PowerConnectorBlock.BUNDLED, hasConnections), 3);
+        if (state.hasProperty(BlockPowerConnector.BUNDLED)
+                && state.getValue(BlockPowerConnector.BUNDLED) != hasConnections) {
+            level.setBlock(worldPosition, state.setValue(BlockPowerConnector.BUNDLED, hasConnections), 3);
         }
     }
     /**
@@ -149,7 +149,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
 
         for (BlockPos target : oldConnections) {
             BlockEntity be = level.getBlockEntity(target);
-            if (be instanceof BlockEntityPowerConnector cable) {
+            if (be instanceof EntityBlockPowerConnector cable) {
                 cable.invalidateNetwork();
             }
         }
@@ -163,7 +163,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
         List<BlockPos> result = new ArrayList<>();
         for (BlockPos pos : connections) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof BlockEntityPowerConnector && !result.contains(pos)) {
+            if (be instanceof EntityBlockPowerConnector && !result.contains(pos)) {
                 result.add(pos);
             }
         }
@@ -185,7 +185,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
             if (!visited.add(current)) continue;
 
             BlockEntity be = level.getBlockEntity(current);
-            if (be instanceof BlockEntityPowerConnector cable) {
+            if (be instanceof EntityBlockPowerConnector cable) {
                 for (BlockPos neighbor : cable.getConnectedCables()) {
                     if (!visited.contains(neighbor)) {
                         queue.add(neighbor);
@@ -202,7 +202,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
      * Сливает две сети при добавлении нового соединения.
      * Объединённая сеть присваивается всем узлам.
      */
-    private void mergeWithOtherNetwork(BlockEntityPowerConnector other) {
+    private void mergeWithOtherNetwork(EntityBlockPowerConnector other) {
         Set<BlockPos> network1 = new HashSet<>(this.network);
         Set<BlockPos> network2 = new HashSet<>(other.network);
 
@@ -214,7 +214,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
 
         for (BlockPos pos : merged) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof BlockEntityPowerConnector cable) {
+            if (be instanceof EntityBlockPowerConnector cable) {
                 cable.network.clear();
                 cable.network.addAll(merged);
                 cable.networkDirty = false;
@@ -233,7 +233,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
             for (Direction dir : Direction.values()) {
                 BlockPos neighborPos = pos.relative(dir);
                 BlockEntity be = level.getBlockEntity(neighborPos);
-                if (be instanceof BlockEntityElectroGenerator generator) {
+                if (be instanceof EntityBlockDieselEngine generator) {
                     if (generator.isPowered()) {
                         return true;
                     }
@@ -249,9 +249,9 @@ public class BlockEntityPowerConnector extends BlockEntity {
     private void applyPoweredToNetwork(boolean powered) {
         for (BlockPos pos : network) {
             BlockState state = level.getBlockState(pos);
-            if (state.getBlock() instanceof PowerConnectorBlock) {
-                if (state.getValue(PowerConnectorBlock.POWERED) != powered) {
-                    level.setBlock(pos, state.setValue(PowerConnectorBlock.POWERED, powered), 3);
+            if (state.getBlock() instanceof BlockPowerConnector) {
+                if (state.getValue(BlockPowerConnector.POWERED) != powered) {
+                    level.setBlock(pos, state.setValue(BlockPowerConnector.POWERED, powered), 3);
                 }
             }
         }
@@ -291,7 +291,7 @@ public class BlockEntityPowerConnector extends BlockEntity {
     // ===================== Тик =====================
 
     public static void tick(Level level, BlockPos pos, BlockState state, BlockEntity be) {
-        if (!(be instanceof BlockEntityPowerConnector connector)) return;
+        if (!(be instanceof EntityBlockPowerConnector connector)) return;
         if (level.isClientSide) return;
 
         connector.ticksSinceLastUpdate++;

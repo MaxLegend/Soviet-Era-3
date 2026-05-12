@@ -6,7 +6,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import ru.tesmio.sovietera.SovietEra;
-import ru.tesmio.sovietera.blocks.devices.cable.PowerCableItem;
+import ru.tesmio.sovietera.blocks.devices.cable.ItemPowerCable;
 
 import java.util.function.Supplier;
 
@@ -23,7 +23,7 @@ public class ItemsSE {
     public static RegistryObject<Item> POWER_CABLE;
 
     public static void init() {
-        registerItem("power_cable", () -> new PowerCableItem(new Item.Properties()));
+        registerItem("power_cable", () -> new ItemPowerCable(new Item.Properties()));
     }
 
     private static <T extends Item> RegistryObject<T> registerItem(String name, Supplier<T> item) {

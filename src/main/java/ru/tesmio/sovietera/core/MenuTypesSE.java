@@ -7,7 +7,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import ru.tesmio.sovietera.SovietEra;
-import ru.tesmio.sovietera.blocks.devices.generator.ElectroGeneratorContainer;
+import ru.tesmio.sovietera.blocks.devices.generator.ContainerDieselEngine;
 
 /**
  * Центральный класс регистрации MenuType для всех контейнеров мода.
@@ -17,9 +17,9 @@ public class MenuTypesSE {
     public static final DeferredRegister<MenuType<?>> MENU_TYPES =
             DeferredRegister.create(ForgeRegistries.MENU_TYPES, SovietEra.MODID);
 
-    public static final RegistryObject<MenuType<ElectroGeneratorContainer>> ELECTRO_GENERATOR_MENU =
+    public static final RegistryObject<MenuType<ContainerDieselEngine>> ELECTRO_GENERATOR_MENU =
             MENU_TYPES.register("electro_generator_menu",
-                    () -> IForgeMenuType.create(ElectroGeneratorContainer::new));
+                    () -> IForgeMenuType.create(ContainerDieselEngine::new));
 
     public static void register(IEventBus eventBus) {
         MENU_TYPES.register(eventBus);

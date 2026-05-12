@@ -29,43 +29,54 @@ public class TabsSE {
     public static final List<Supplier<? extends ItemLike>> SOVIET_TAB_ITEMS = new ArrayList<>();
 
     // Основная креативная вкладка мода
-    // TODO: Заменить иконку на реальный предмет мода, когда он будет добавлен
+
     public static final RegistryObject<CreativeModeTab> SOVIET_TAB = TABS.register("soviet_tab",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.soviet_tab"))
                     .icon(() -> new ItemStack(BlocksSE.TRIM_STONE_2.get()))
                                  .displayItems((parameters, output) -> {
-                                     ItemsSE.ITEMS.getEntries().stream()
-                                                   .map(RegistryObject::get)
-                                                   .forEach(output::accept);
+
                                      BlocksSE.BLOCKS.getEntries().stream()
                                                      .map(RegistryObject::get)
                                                      .map(Item::byBlock)
                                                      .filter(item -> item != Items.AIR) // иногда может быть AIR, если нет BlockItem
                                                      .forEach(output::accept);
+                                 }).build()
+    );
+
+    public static final RegistryObject<CreativeModeTab> DEVICES_TAB = TABS.register("devices_tab",
+            () -> CreativeModeTab.builder()
+                                 .title(Component.translatable("itemGroup.devices_tab"))
+                                 .icon(() -> new ItemStack(BlocksSE.DIESEL_ENGINE.get()))
+                                 .displayItems((parameters, output) -> {
+
+
                                      BlocksSE.NOT_DEFAULT_BLOCKS.getEntries().stream()
-                                                    .map(RegistryObject::get)
-                                                    .map(Item::byBlock)
-                                                    .filter(item -> item != Items.AIR) // иногда может быть AIR, если нет BlockItem
-                                                    .forEach(output::accept);
+                                                                .map(RegistryObject::get)
+                                                                .map(Item::byBlock)
+                                                                .filter(item -> item != Items.AIR) // иногда может быть AIR, если нет BlockItem
+                                                                .forEach(output::accept);
                                      BlocksSE.ONLY_CUSTOM_BLOCKS.getEntries().stream()
                                                                 .map(RegistryObject::get)
                                                                 .map(Item::byBlock)
                                                                 .filter(item -> item != Items.AIR) // иногда может быть AIR, если нет BlockItem
                                                                 .forEach(output::accept);
 
-                                 })
-                                 .build()
+                                 }).build()
+    );
+    public static final RegistryObject<CreativeModeTab> ITEMS_TAB = TABS.register("items_tab",
+            () -> CreativeModeTab.builder()
+                                 .title(Component.translatable("itemGroup.items_tab"))
+                                 .icon(() -> new ItemStack(ItemsSE.POWER_CABLE.get()))
+                                 .displayItems((parameters, output) -> {
+                                     ItemsSE.ITEMS.getEntries().stream()
+                                                  .map(RegistryObject::get)
+                                                  .forEach(output::accept);
+
+
+                                 }).build()
     );
 
-    /**
-     * Добавляет предмет в креативную вкладку мода.
-     * Используется в BlocksSE.registerBlockItem() и ItemsSE при регистрации предметов.
-     */
-    public static <T extends Item> RegistryObject<T> addToTab(RegistryObject<T> itemLike) {
-        SOVIET_TAB_ITEMS.add(itemLike);
-        return itemLike;
-    }
     public static void register(IEventBus eventBus) {
         TABS.register(eventBus);
     }
@@ -80,8 +91,5 @@ public class TabsSE {
         //     event.accept(BlocksSE.SOVIET_CONCRETE);
         // }
     }
-//
-//    public static void init() {
-//        // Принудительная загрузка класса (инициализация статических полей)
-//    }
+
 }

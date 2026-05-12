@@ -29,9 +29,9 @@ import org.joml.Matrix4f;
  *   - Без питания: тёмно-серый (0.2, 0.2, 0.2) — изолированный кабель
  *   - С питанием:  жёлто-янтарный (1.0, 0.8, 0.0) — под напряжением
  */
-public class PowerCableRenderer implements BlockEntityRenderer<BlockEntityPowerConnector> {
+public class RendererPowerCable implements BlockEntityRenderer<EntityBlockPowerConnector> {
 
-    public PowerCableRenderer(BlockEntityRendererProvider.Context ctx) {}
+    public RendererPowerCable(BlockEntityRendererProvider.Context ctx) {}
 
     /** Кастомный RenderType для проводов — без отсечения задних граней, с лайтмапой */
     public static final RenderType CABLE_RENDER = RenderType.create(
@@ -55,12 +55,12 @@ public class PowerCableRenderer implements BlockEntityRenderer<BlockEntityPowerC
     }
 
     @Override
-    public void render(BlockEntityPowerConnector entity, float partialTicks, PoseStack poseStack,
+    public void render(EntityBlockPowerConnector entity, float partialTicks, PoseStack poseStack,
             MultiBufferSource buffer, int packedLight, int packedOverlay) {
         BlockPos blockPos = entity.getBlockPos();
         BlockState thisState = entity.getBlockState();
-        boolean powered = thisState.getValue(PowerConnectorBlock.POWERED);
-        Direction thisFacing = thisState.getValue(PowerConnectorBlock.ATTACHED_FACE);
+        boolean powered = thisState.getValue(BlockPowerConnector.POWERED);
+        Direction thisFacing = thisState.getValue(BlockPowerConnector.ATTACHED_FACE);
 
         // Цвет провода: тёмно-серый без питания, янтарный — с питанием
         float r, g, b;
@@ -76,9 +76,9 @@ public class PowerCableRenderer implements BlockEntityRenderer<BlockEntityPowerC
 
         for (BlockPos connection : entity.getConnections()) {
             BlockState otherState = entity.getLevel().getBlockState(connection);
-            if (!(otherState.getBlock() instanceof PowerConnectorBlock)) continue;
-            Direction otherFacing = otherState.hasProperty(PowerConnectorBlock.ATTACHED_FACE)
-                    ? otherState.getValue(PowerConnectorBlock.ATTACHED_FACE)
+            if (!(otherState.getBlock() instanceof BlockPowerConnector)) continue;
+            Direction otherFacing = otherState.hasProperty(BlockPowerConnector.ATTACHED_FACE)
+                    ? otherState.getValue(BlockPowerConnector.ATTACHED_FACE)
                     : Direction.NORTH;
 
             Vec3 otherOffset = getConnectionOffset(otherFacing);
@@ -116,11 +116,11 @@ public class PowerCableRenderer implements BlockEntityRenderer<BlockEntityPowerC
         // Относительно центра блока (0.5, 0.5, 0.5):
         // rx = 0.0
         // ry = 0.078125
-        // rz = 0.421875
+        // rz = 0.5
 
         final double rx = 0.0;
         final double ry = 0.08125;
-        final double rz = 0.421875;
+        final double rz = 0.5;
 
         return switch (attachedFace) {
             case NORTH -> new Vec3(0.5 + rx, 0.5 + ry, 0.5 + rz);   // (0.5,    0.578, 0.922)
