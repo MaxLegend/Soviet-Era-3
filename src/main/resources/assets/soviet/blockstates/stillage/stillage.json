@@ -1,0 +1,7 @@
+{
+    "variants": {
+        "part=down":  { "model": "soviet:block/stillage/stillage"},
+        "part=mid":  { "model": "soviet:block/stillage/stillage_mid"},
+        "part=up":  { "model": "soviet:block/stillage/stillage_up"}
+    }
+}

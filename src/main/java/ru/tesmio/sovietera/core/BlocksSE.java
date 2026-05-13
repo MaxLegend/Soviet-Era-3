@@ -12,12 +12,15 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 import ru.tesmio.sovietera.SovietEra;
 import ru.tesmio.sovietera.blocks.baseblock.BaseBlock;
+import ru.tesmio.sovietera.blocks.baseblock.BaseSlab;
+import ru.tesmio.sovietera.blocks.baseblock.BaseStairs;
 import ru.tesmio.sovietera.blocks.baseblock.subtype.*;
 import ru.tesmio.sovietera.blocks.devices.generator.BlockDieselEngine;
 import ru.tesmio.sovietera.blocks.devices.generator.BlockDieselTank;
 import ru.tesmio.sovietera.blocks.devices.generator.BlockElectroGenerator;
 import ru.tesmio.sovietera.blocks.devices.cable.BlockPowerConnector;
 import ru.tesmio.sovietera.blocks.devices.lamps.*;
+import ru.tesmio.sovietera.blocks.storages.stillage.BlockStillage;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
@@ -271,6 +274,29 @@ public class BlocksSE {
         PANEL_CONCRETE_YELLOW = registerBlock("structural/panel_concrete_yellow", () -> new BaseBlock(PANEL_PROPS));
         PANEL_TILE = registerBlock("structural/panel_tile", () -> new BaseBlock(PANEL_PROPS));
 
+
+//        //stairs
+//        CONCRETE_STAIRS_GRAY = registerBlock("stairs/concrete_gray_stairs", () -> new BaseStairs(CONCRETE_GRAY.get().defaultBlockState(), "info.gray"));
+//        CONCRETE_STAIRS_GREEN = registerBlock("stairs/concrete_green_stairs", () -> new BaseStairs(CONCRETE_GREEN.get().defaultBlockState(),  "info.green"));
+//        CONCRETE_STAIRS_BLUE = registerBlock("stairs/concrete_blue_stairs", () -> new BaseStairs(CONCRETE_BLUE.get().defaultBlockState(), "info.blue"));
+//        CONCRETE_STAIRS_BEIGE = registerBlock("stairs/concrete_beige_stairs", () -> new BaseStairs(CONCRETE_BEIGE.get().defaultBlockState(),  "info.beige"));
+//        CONCRETE_STAIRS_BEIGE2 = registerBlock("stairs/concrete_beige2_stairs", () -> new BaseStairs(CONCRETE_BEIGE2.get().defaultBlockState(),  "info.beige2"));
+//        CONCRETE_STAIRS_RED = registerBlock("stairs/concrete_red_stairs", () -> new BaseStairs(CONCRETE_RED.get().defaultBlockState(),  "info.red"));
+//        CONCRETE_STAIRS_ORANGE = registerBlock("stairs/concrete_orange_stairs", () -> new BaseStairs(CONCRETE_ORANGE.get().defaultBlockState(),  "info.orange"));
+//        CONCRETE_STAIRS_YELLOW = registerBlock("stairs/concrete_yellow_stairs", () -> new BaseStairs(CONCRETE_YELLOW.get().defaultBlockState(),  "info.yellow"));
+//        CONCRETE_STAIRS_WHITE = registerBlock("stairs/concrete_white_stairs", () -> new BaseStairs(CONCRETE_WHITE.get().defaultBlockState(), "info.white"));
+//        //slabs
+//        CONCRETE_SLAB_GRAY = registerBlockWithModelColored("slabs/concrete_slab_gray", () -> new BaseSlab( "info.gray"));
+//        CONCRETE_SLAB_GREEN = registerBlockWithModelColored("slabs/concrete_slab_green", () -> new BaseSlab( "info.green"));
+//        CONCRETE_SLAB_BLUE = registerBlockWithModelColored("slabs/concrete_slab_blue", () -> new BaseSlab("info.blue"));
+//        CONCRETE_SLAB_BEIGE = registerBlockWithModelColored("slabs/concrete_slab_beige", () -> new BaseSlab("info.beige"));
+//        CONCRETE_SLAB_BEIGE2 = registerBlockWithModelColored("slabs/concrete_slab_beige2", () -> new BaseSlab("info.beige2"));
+//        CONCRETE_SLAB_RED = registerBlockWithModelColored("slabs/concrete_slab_red", () -> new BaseSlab("info.red"));
+//        CONCRETE_SLAB_ORANGE = registerBlockWithModelColored("slabs/concrete_slab_orange", () -> new BaseSlab("info.orange"));
+//        CONCRETE_SLAB_YELLOW = registerBlockWithModelColored("slabs/concrete_slab_yellow", () -> new BaseSlab("info.yellow"));
+//        CONCRETE_SLAB_WHITE = registerBlockWithModelColored("slabs/concrete_slab_white", () -> new BaseSlab("info.white"));
+//
+
         // =====================================================================
         //  DIESEL GENERATOR
         // =====================================================================
@@ -286,6 +312,15 @@ public class BlocksSE {
         ELECTRO_GENERATOR = registerNDBlock("dieselgen/generator", () -> new BlockElectroGenerator(DIESEL_GEN_PROPS, 0.0f));
         POWER_CONNECTOR = registerOnlyCustomBlock("dieselgen/power_connector", BlockPowerConnector::new);
 
+        // =====================================================================
+        //  STILLAGE — Стеллаж (1-slot shelf, no GUI)
+        // =====================================================================
+        Block.Properties STILLAGE_PROPS = Block.Properties.of()
+                .strength(2f, 8f)
+                .sound(SoundType.METAL)
+                .noOcclusion();
+
+        STILLAGE = registerNDBlock("stillage/stillage", () -> new BlockStillage(STILLAGE_PROPS, 0.0f));
 
         // =====================================================================
         //  LAMPS — Лампы (сетевые, с EntityBlockLamp)
@@ -302,14 +337,11 @@ public class BlocksSE {
         FLUO_LAMP2 = registerOnlyCustomBlock("lamps/fluolamp2", () -> new BlockFluoLamp2(LAMP_PROPS));
         FLUO_LAMP3 = registerOnlyCustomBlock("lamps/fluolamp3", () -> new BlockFluoLamp3(LAMP_PROPS));
 
-        // Сломанные лампы — не излучают свет
         Block.Properties BROKEN_LAMP_PROPS = BlockBehaviour.Properties.of()
                                                                       .strength(2.5F, 2.0F)
                                                                       .sound(SoundType.METAL)
                                                                       .requiresCorrectToolForDrops()
                                                                       .noOcclusion();
-        // lightLevel уже переопределён в BlockBrokenFluoLamp (всегда 0)
-
         BROKEN_FLUO_LAMP = registerOnlyCustomBlock("lamps/broken_fluolamp", () -> new BlockBrokenFluoLamp(BROKEN_LAMP_PROPS));
         BROKEN_FLUO_LAMP2 = registerOnlyCustomBlock("lamps/broken_fluolamp2", () -> new BlockBrokenFluoLamp2(BROKEN_LAMP_PROPS));
         BROKEN_FLUO_LAMP3 = registerOnlyCustomBlock("lamps/broken_fluolamp3", () -> new BlockBrokenFluoLamp3(BROKEN_LAMP_PROPS));
@@ -319,6 +351,31 @@ public class BlocksSE {
     }
 
     // ===================== Поля блоков =====================
+
+
+    // --- Slabs ---
+
+    public static RegistryObject<Block>
+            CONCRETE_STAIRS_GRAY,
+            CONCRETE_STAIRS_GREEN,
+            CONCRETE_STAIRS_BLUE,
+            CONCRETE_STAIRS_BEIGE,
+            CONCRETE_STAIRS_BEIGE2,
+            CONCRETE_STAIRS_RED,
+            CONCRETE_STAIRS_YELLOW,
+            CONCRETE_STAIRS_WHITE,
+            CONCRETE_STAIRS_ORANGE;
+
+    public static RegistryObject<Block>
+            CONCRETE_SLAB_GRAY,
+            CONCRETE_SLAB_GREEN,
+            CONCRETE_SLAB_BLUE,
+            CONCRETE_SLAB_BEIGE,
+            CONCRETE_SLAB_BEIGE2,
+            CONCRETE_SLAB_RED,
+            CONCRETE_SLAB_YELLOW,
+            CONCRETE_SLAB_WHITE,
+            CONCRETE_SLAB_ORANGE;
 
 
     // --- Lamps ---
@@ -420,6 +477,9 @@ public class BlocksSE {
     public static RegistryObject<Block> DIESEL_TANK;
     public static RegistryObject<Block> ELECTRO_GENERATOR;
     public static RegistryObject<Block> POWER_CONNECTOR;
+
+    // --- Stillage ---
+    public static RegistryObject<Block> STILLAGE;
 
     // ===================== Методы регистрации =====================
 

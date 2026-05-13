@@ -10,9 +10,10 @@ import ru.tesmio.sovietera.blocks.devices.generator.EntityBlockDieselTank;
 import ru.tesmio.sovietera.blocks.devices.generator.EntityBlockDieselEngine;
 import ru.tesmio.sovietera.blocks.devices.cable.EntityBlockPowerConnector;
 import ru.tesmio.sovietera.blocks.devices.lamps.EntityBlockLamp;
+import ru.tesmio.sovietera.blocks.storages.stillage.EntityBlockStillage;
 
 /**
- * Центральный класс регистрации BlockEntityType для всех тайл-сущностей мода.
+ * Central registration class for all BlockEntityType entries.
  */
 public class BlockEntitiesSE {
 
@@ -47,6 +48,11 @@ public class BlockEntitiesSE {
             BLOCK_ENTITIES.register("power_connector",
                     () -> BlockEntityType.Builder.of(EntityBlockPowerConnector::new, BlocksSE.POWER_CONNECTOR.get())
                                                  .build(null));
+    public static final RegistryObject<BlockEntityType<EntityBlockStillage>> ENTITY_BLOCK_STILLAGE =
+            BLOCK_ENTITIES.register("stillage",
+                    () -> BlockEntityType.Builder.of(EntityBlockStillage::new,
+                                    BlocksSE.STILLAGE.get())
+                            .build(null));
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);
     }
