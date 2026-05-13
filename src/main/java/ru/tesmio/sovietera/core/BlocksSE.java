@@ -5,6 +5,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -16,6 +17,7 @@ import ru.tesmio.sovietera.blocks.devices.generator.BlockDieselEngine;
 import ru.tesmio.sovietera.blocks.devices.generator.BlockDieselTank;
 import ru.tesmio.sovietera.blocks.devices.generator.BlockElectroGenerator;
 import ru.tesmio.sovietera.blocks.devices.cable.BlockPowerConnector;
+import ru.tesmio.sovietera.blocks.devices.lamps.*;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
@@ -284,9 +286,50 @@ public class BlocksSE {
         ELECTRO_GENERATOR = registerNDBlock("dieselgen/generator", () -> new BlockElectroGenerator(DIESEL_GEN_PROPS, 0.0f));
         POWER_CONNECTOR = registerOnlyCustomBlock("dieselgen/power_connector", BlockPowerConnector::new);
 
+
+        // =====================================================================
+        //  LAMPS — Лампы (сетевые, с EntityBlockLamp)
+        // =====================================================================
+        Block.Properties LAMP_PROPS = BlockBehaviour.Properties.of()
+                                                               .strength(2.5F, 2.0F)
+                                                               .sound(SoundType.METAL)
+                                                               .requiresCorrectToolForDrops()
+                                                               .noOcclusion()
+                                                               .lightLevel(state -> state.hasProperty(BlockLampBase.POWERED)
+                                                                       && state.getValue(BlockLampBase.POWERED) ? 15 : 0);
+
+        FLUO_LAMP = registerOnlyCustomBlock("lamps/fluolamp", () ->  new BlockFluoLamp(LAMP_PROPS));
+        FLUO_LAMP2 = registerOnlyCustomBlock("lamps/fluolamp2", () -> new BlockFluoLamp2(LAMP_PROPS));
+        FLUO_LAMP3 = registerOnlyCustomBlock("lamps/fluolamp3", () -> new BlockFluoLamp3(LAMP_PROPS));
+
+        // Сломанные лампы — не излучают свет
+        Block.Properties BROKEN_LAMP_PROPS = BlockBehaviour.Properties.of()
+                                                                      .strength(2.5F, 2.0F)
+                                                                      .sound(SoundType.METAL)
+                                                                      .requiresCorrectToolForDrops()
+                                                                      .noOcclusion();
+        // lightLevel уже переопределён в BlockBrokenFluoLamp (всегда 0)
+
+        BROKEN_FLUO_LAMP = registerOnlyCustomBlock("lamps/broken_fluolamp", () -> new BlockBrokenFluoLamp(BROKEN_LAMP_PROPS));
+        BROKEN_FLUO_LAMP2 = registerOnlyCustomBlock("lamps/broken_fluolamp2", () -> new BlockBrokenFluoLamp2(BROKEN_LAMP_PROPS));
+        BROKEN_FLUO_LAMP3 = registerOnlyCustomBlock("lamps/broken_fluolamp3", () -> new BlockBrokenFluoLamp3(BROKEN_LAMP_PROPS));
+
+        INC_LAMP = registerOnlyCustomBlock("lamps/inc_lamp", () -> new BlockIncLamp(LAMP_PROPS));
+        STREET_LAMP = registerOnlyCustomBlock("lamps/street_lamp", () -> new BlockStreetLamp(LAMP_PROPS));
     }
 
     // ===================== Поля блоков =====================
+
+
+    // --- Lamps ---
+    public static RegistryObject<Block> FLUO_LAMP;
+    public static RegistryObject<Block> FLUO_LAMP2;
+    public static RegistryObject<Block> FLUO_LAMP3;
+    public static RegistryObject<Block> BROKEN_FLUO_LAMP;
+    public static RegistryObject<Block> BROKEN_FLUO_LAMP2;
+    public static RegistryObject<Block> BROKEN_FLUO_LAMP3;
+    public static RegistryObject<Block> INC_LAMP;
+    public static RegistryObject<Block> STREET_LAMP;
 
     // --- Concrete ---
     public static RegistryObject<Block> CONCRETE_ORANGE, CONCRETE_ORANGE_BR;

@@ -25,6 +25,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import ru.tesmio.sovietera.blocks.baseblock.BaseBlock;
+import ru.tesmio.sovietera.blocks.devices.devicesnetwork.INetworkNode;
 import ru.tesmio.sovietera.core.BlockEntitiesSE;
 import ru.tesmio.sovietera.utils.ShapesUtil;
 
@@ -166,7 +167,7 @@ public class BlockPowerConnector extends BaseBlock implements EntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) return null;
-        return type == BlockEntitiesSE.POWER_CONNECTOR.get()
+        return type == BlockEntitiesSE.ENTITY_BLOCK_POWER_CONNECTOR.get()
                 ? (lvl, pos, st, be) -> EntityBlockPowerConnector.tick(lvl, pos, st, be)
                 : null;
     }
@@ -179,18 +180,17 @@ public class BlockPowerConnector extends BaseBlock implements EntityBlock {
         if (!state.is(newState.getBlock())) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof EntityBlockPowerConnector connector) {
-                // Сначала собираем все чужие коннекторы
-                List<EntityBlockPowerConnector> others = new ArrayList<>();
+                // Собираем ВСЕ узлы (коннекторы И лампы) через INetworkNode
+                List<INetworkNode> others = new ArrayList<>();
                 for (BlockPos otherPos : new ArrayList<>(connector.getConnections())) {
                     BlockEntity otherBe = level.getBlockEntity(otherPos);
-                    if (otherBe instanceof EntityBlockPowerConnector otherConnector) {
-                        others.add(otherConnector);
+                    INetworkNode otherNode = INetworkNode.from(otherBe);
+                    if (otherNode != null) {
+                        others.add(otherNode);
                     }
                 }
-                // Сначала очищаем свои соединения
                 connector.clearConnections();
-                // Потом удаляем себя из чужих списков
-                for (EntityBlockPowerConnector other : others) {
+                for (INetworkNode other : others) {
                     other.removeConnection(pos);
                 }
             }

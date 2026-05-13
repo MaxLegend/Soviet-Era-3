@@ -67,7 +67,7 @@ public class TabsSE {
     public static final RegistryObject<CreativeModeTab> ITEMS_TAB = TABS.register("items_tab",
             () -> CreativeModeTab.builder()
                                  .title(Component.translatable("itemGroup.items_tab"))
-                                 .icon(() -> new ItemStack(ItemsSE.POWER_CABLE.get()))
+                                 .icon(() -> new ItemStack(Items.STICK))
                                  .displayItems((parameters, output) -> {
                                      ItemsSE.ITEMS.getEntries().stream()
                                                   .map(RegistryObject::get)

@@ -1,0 +1,16 @@
+{
+    "variants": {
+        "facing=east,powered=false":  { "model": "soviet:block/lamps/inc_lamp", "x": 90, "y": 90},
+         "facing=down,powered=false":  { "model": "soviet:block/lamps/inc_lamp", "x": 180 },
+        "facing=west,powered=false":  { "model": "soviet:block/lamps/inc_lamp", "x": 90, "y": 270},
+        "facing=up,powered=false":    { "model": "soviet:block/lamps/inc_lamp", "y": 270},
+        "facing=north,powered=false": { "model": "soviet:block/lamps/inc_lamp", "y": 0, "x": 90 },
+        "facing=south,powered=false": { "model": "soviet:block/lamps/inc_lamp", "y": 0, "x": 270  },
+        "facing=east,powered=true":  { "model": "soviet:block/lamps/inc_lamp_on", "x": 90, "y": 90},
+         "facing=down,powered=true":  { "model": "soviet:block/lamps/inc_lamp_on", "x": 180 },
+        "facing=west,powered=true":  { "model": "soviet:block/lamps/inc_lamp_on", "x": 90, "y": 270},
+        "facing=up,powered=true":    { "model": "soviet:block/lamps/inc_lamp_on", "y": 270},
+        "facing=north,powered=true": { "model": "soviet:block/lamps/inc_lamp_on", "y": 0, "x": 90 },
+        "facing=south,powered=true": { "model": "soviet:block/lamps/inc_lamp_on", "y": 0, "x": 270  }
+    }
+}

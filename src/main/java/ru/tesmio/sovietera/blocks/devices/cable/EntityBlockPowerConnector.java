@@ -1,7 +1,6 @@
 package ru.tesmio.sovietera.blocks.devices.cable;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -10,7 +9,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import ru.tesmio.sovietera.blocks.devices.generator.EntityBlockDieselEngine;
+import ru.tesmio.sovietera.blocks.devices.devicesnetwork.INetworkNode;
+import ru.tesmio.sovietera.blocks.devices.devicesnetwork.NetworkUtils;
 import ru.tesmio.sovietera.core.BlockEntitiesSE;
 
 import java.util.*;
@@ -26,7 +26,7 @@ import java.util.*;
  * дизель-генератором (BlockEntityElectroGenerator.isPowered() == true),
  * вся сеть получает питание — POWERED = true на всех узлах.
  */
-public class EntityBlockPowerConnector extends BlockEntity {
+public class EntityBlockPowerConnector extends BlockEntity implements INetworkNode {
 
     /** Максимальная дистанция одного провода (в блоках) */
     private static final int MAX_CONNECTION_DISTANCE = 24;
@@ -47,7 +47,7 @@ public class EntityBlockPowerConnector extends BlockEntity {
     private boolean cachedPowered = false;
 
     public EntityBlockPowerConnector(BlockPos pos, BlockState state) {
-        super(BlockEntitiesSE.POWER_CONNECTOR.get(), pos, state);
+        super(BlockEntitiesSE.ENTITY_BLOCK_POWER_CONNECTOR.get(), pos, state);
     }
 
     // ===================== Соединения =====================
@@ -72,15 +72,24 @@ public class EntityBlockPowerConnector extends BlockEntity {
         updateBundledState();
         // Сливаем сети при новом соединении
         BlockEntity be = level.getBlockEntity(target);
-        if (be instanceof EntityBlockPowerConnector other) {
-            mergeWithOtherNetwork(other);
+        INetworkNode otherNode = INetworkNode.from(be);
+        if (otherNode != null) {
+            mergeWithOtherNetwork(otherNode);
         }
     }
+    @Override
+    public BlockEntity asBlockEntity() { return this; }
 
+    @Override
+    public void markNetworkDirty() {
+        networkDirty = true;
+        setChanged();
+    }
     /**
      * Удаляет прямое соединение с другим коннектором.
      * Инвалидирует сеть с обеих сторон.
      */
+    @Override
     public void removeConnection(BlockPos target) {
         if (connections.remove(target)) {
             networkDirty = true;
@@ -90,8 +99,9 @@ public class EntityBlockPowerConnector extends BlockEntity {
             invalidateNetwork();
 
             BlockEntity be = level.getBlockEntity(target);
-            if (be instanceof EntityBlockPowerConnector cable) {
-                cable.invalidateNetwork();
+            INetworkNode otherNode = INetworkNode.from(be);
+            if (otherNode != null) {
+                otherNode.markNetworkDirty();
             }
         }
     }
@@ -101,26 +111,44 @@ public class EntityBlockPowerConnector extends BlockEntity {
      * Сеть будет перестроена при следующем обновлении.
      */
     public void invalidateNetwork() {
+        if (level == null) return;
         Set<BlockPos> visited = new HashSet<>();
         Queue<BlockPos> queue = new LinkedList<>();
         queue.add(this.worldPosition);
-
         while (!queue.isEmpty()) {
             BlockPos current = queue.poll();
             if (!visited.add(current)) continue;
-
             BlockEntity be = level.getBlockEntity(current);
-            if (be instanceof EntityBlockPowerConnector cable) {
-                cable.networkDirty = true;
-                cable.setChanged();
-                for (BlockPos neighbor : cable.getConnectedCables()) {
-                    if (!visited.contains(neighbor)) {
-                        queue.add(neighbor);
-                    }
+            INetworkNode node = INetworkNode.from(be);
+            if (node != null) {
+                node.markNetworkDirty();
+                for (BlockPos neighbor : node.getConnections()) {
+                    if (!visited.contains(neighbor)) queue.add(neighbor);
                 }
             }
         }
     }
+//    public void invalidateNetwork() {
+//        Set<BlockPos> visited = new HashSet<>();
+//        Queue<BlockPos> queue = new LinkedList<>();
+//        queue.add(this.worldPosition);
+//
+//        while (!queue.isEmpty()) {
+//            BlockPos current = queue.poll();
+//            if (!visited.add(current)) continue;
+//
+//            BlockEntity be = level.getBlockEntity(current);
+//            if (be instanceof EntityBlockPowerConnector cable) {
+//                cable.networkDirty = true;
+//                cable.setChanged();
+//                for (BlockPos neighbor : cable.getConnectedCables()) {
+//                    if (!visited.contains(neighbor)) {
+//                        queue.add(neighbor);
+//                    }
+//                }
+//            }
+//        }
+//    }
     /**
      * Обновляет blockstate BUNDLED в зависимости от наличия соединений.
      * Если есть хотя бы одно соединение — BUNDLED=true, иначе false.
@@ -138,6 +166,7 @@ public class EntityBlockPowerConnector extends BlockEntity {
      * Очищает все соединения этого коннектора.
      * Вызывается при удалении блока.
      */
+    @Override
     public void clearConnections() {
         List<BlockPos> oldConnections = new ArrayList<>(connections);
         connections.clear();
@@ -149,8 +178,9 @@ public class EntityBlockPowerConnector extends BlockEntity {
 
         for (BlockPos target : oldConnections) {
             BlockEntity be = level.getBlockEntity(target);
-            if (be instanceof EntityBlockPowerConnector cable) {
-                cable.invalidateNetwork();
+            INetworkNode otherNode = INetworkNode.from(be);
+            if (otherNode != null) {
+                otherNode.markNetworkDirty();  // ✅ Работает и для ламп, и для коннекторов
             }
         }
     }
@@ -160,67 +190,80 @@ public class EntityBlockPowerConnector extends BlockEntity {
      * (фильтрует несуществующие).
      */
     public List<BlockPos> getConnectedCables() {
-        List<BlockPos> result = new ArrayList<>();
-        for (BlockPos pos : connections) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof EntityBlockPowerConnector && !result.contains(pos)) {
-                result.add(pos);
-            }
-        }
-        return result;
+        return INetworkNode.getValidConnections(this);
     }
+//    public List<BlockPos> getConnectedCables() {
+//        List<BlockPos> result = new ArrayList<>();
+//        for (BlockPos pos : connections) {
+//            BlockEntity be = level.getBlockEntity(pos);
+//            if (be instanceof EntityBlockPowerConnector && !result.contains(pos)) {
+//                result.add(pos);
+//            }
+//        }
+//        return result;
+//    }
 
     // ===================== Сеть =====================
-
     /**
      * Перестраивает сеть (BFS от текущего узла).
      */
     public void rebuildNetwork() {
-        Set<BlockPos> visited = new HashSet<>();
-        Queue<BlockPos> queue = new LinkedList<>();
-        queue.add(worldPosition);
-
-        while (!queue.isEmpty()) {
-            BlockPos current = queue.poll();
-            if (!visited.add(current)) continue;
-
-            BlockEntity be = level.getBlockEntity(current);
-            if (be instanceof EntityBlockPowerConnector cable) {
-                for (BlockPos neighbor : cable.getConnectedCables()) {
-                    if (!visited.contains(neighbor)) {
-                        queue.add(neighbor);
-                    }
-                }
-            }
-        }
-
+        Set<BlockPos> visited = NetworkUtils.bfsNetwork(level, worldPosition);
         network.clear();
         network.addAll(visited);
     }
+
+
+//    public void rebuildNetwork() {
+//        Set<BlockPos> visited = new HashSet<>();
+//        Queue<BlockPos> queue = new LinkedList<>();
+//        queue.add(worldPosition);
+//
+//        while (!queue.isEmpty()) {
+//            BlockPos current = queue.poll();
+//            if (!visited.add(current)) continue;
+//
+//            BlockEntity be = level.getBlockEntity(current);
+//            if (be instanceof EntityBlockPowerConnector cable) {
+//                for (BlockPos neighbor : cable.getConnectedCables()) {
+//                    if (!visited.contains(neighbor)) {
+//                        queue.add(neighbor);
+//                    }
+//                }
+//            }
+//        }
+//
+//        network.clear();
+//        network.addAll(visited);
+//    }
 
     /**
      * Сливает две сети при добавлении нового соединения.
      * Объединённая сеть присваивается всем узлам.
      */
-    private void mergeWithOtherNetwork(EntityBlockPowerConnector other) {
-        Set<BlockPos> network1 = new HashSet<>(this.network);
-        Set<BlockPos> network2 = new HashSet<>(other.network);
-
-        Set<BlockPos> larger = network1.size() >= network2.size() ? network1 : network2;
-        Set<BlockPos> smaller = network1.size() < network2.size() ? network1 : network2;
-
-        Set<BlockPos> merged = new HashSet<>(larger);
-        merged.addAll(smaller);
-
-        for (BlockPos pos : merged) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof EntityBlockPowerConnector cable) {
-                cable.network.clear();
-                cable.network.addAll(merged);
-                cable.networkDirty = false;
-            }
-        }
+    private void mergeWithOtherNetwork(INetworkNode other) {
+        this.networkDirty = true;
+        other.markNetworkDirty();
     }
+//    private void mergeWithOtherNetwork(EntityBlockPowerConnector other) {
+//        Set<BlockPos> network1 = new HashSet<>(this.network);
+//        Set<BlockPos> network2 = new HashSet<>(other.network);
+//
+//        Set<BlockPos> larger = network1.size() >= network2.size() ? network1 : network2;
+//        Set<BlockPos> smaller = network1.size() < network2.size() ? network1 : network2;
+//
+//        Set<BlockPos> merged = new HashSet<>(larger);
+//        merged.addAll(smaller);
+//
+//        for (BlockPos pos : merged) {
+//            BlockEntity be = level.getBlockEntity(pos);
+//            if (be instanceof EntityBlockPowerConnector cable) {
+//                cable.network.clear();
+//                cable.network.addAll(merged);
+//                cable.networkDirty = false;
+//            }
+//        }
+//    }
 
     // ===================== Питание =====================
 
@@ -228,33 +271,30 @@ public class EntityBlockPowerConnector extends BlockEntity {
      * Проверяет, есть ли питание в сети.
      * Сканирует все узлы сети на наличие рядом работающего генератора.
      */
-    private boolean computeNetworkPowered() {
-        for (BlockPos pos : network) {
-            for (Direction dir : Direction.values()) {
-                BlockPos neighborPos = pos.relative(dir);
-                BlockEntity be = level.getBlockEntity(neighborPos);
-                if (be instanceof EntityBlockDieselEngine generator) {
-                    if (generator.isPowered()) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+private boolean computeNetworkPowered() {
+    return NetworkUtils.computeNetworkPowered(level, network);
+}
+
+//    private boolean computeNetworkPowered() {
+//        for (BlockPos pos : network) {
+//            for (Direction dir : Direction.values()) {
+//                BlockPos neighborPos = pos.relative(dir);
+//                BlockEntity be = level.getBlockEntity(neighborPos);
+//                if (be instanceof EntityBlockDieselEngine generator) {
+//                    if (generator.isPowered()) {
+//                        return true;
+//                    }
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     /**
      * Устанавливает POWERED на всех узлах сети.
      */
     private void applyPoweredToNetwork(boolean powered) {
-        for (BlockPos pos : network) {
-            BlockState state = level.getBlockState(pos);
-            if (state.getBlock() instanceof BlockPowerConnector) {
-                if (state.getValue(BlockPowerConnector.POWERED) != powered) {
-                    level.setBlock(pos, state.setValue(BlockPowerConnector.POWERED, powered), 3);
-                }
-            }
-        }
+        NetworkUtils.applyPoweredToNetwork(level, network, powered);
     }
 
     /**
@@ -320,7 +360,7 @@ public class EntityBlockPowerConnector extends BlockEntity {
 
     @Override
     public AABB getRenderBoundingBox() {
-        return super.getRenderBoundingBox().inflate(50f);
+        return super.getRenderBoundingBox().inflate(MAX_CONNECTION_DISTANCE);
     }
 
     @Override

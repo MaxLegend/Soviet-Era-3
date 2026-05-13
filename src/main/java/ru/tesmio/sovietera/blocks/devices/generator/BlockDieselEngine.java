@@ -86,7 +86,7 @@ public class BlockDieselEngine extends BlockModelSide implements EntityBlock {
         if (level.isClientSide()) {
             return null;
         }
-        if (type == BlockEntitiesSE.ELECTRO_GENERATOR.get()) {
+        if (type == BlockEntitiesSE.ENTITY_BLOCK_ELECTRO_GENERATOR.get()) {
             return (lvl, pos, st, be) -> EntityBlockDieselEngine.serverTick(lvl, pos, st, (EntityBlockDieselEngine) be);
         }
         return null;

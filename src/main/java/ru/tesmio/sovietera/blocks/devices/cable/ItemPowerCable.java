@@ -16,8 +16,15 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.Vec3;
+import ru.tesmio.sovietera.blocks.devices.devicesnetwork.INetworkNode;
+import ru.tesmio.sovietera.blocks.devices.lamps.BlockLampBase;
+import ru.tesmio.sovietera.blocks.devices.lamps.EntityBlockLamp;
 import ru.tesmio.sovietera.network.PowerCtrlPressedPacket;
 import ru.tesmio.sovietera.SovietEra;
+import ru.tesmio.sovietera.utils.BaseEnumOrientation;
 
 import java.util.List;
 
@@ -47,6 +54,7 @@ public class ItemPowerCable extends Item {
                     tag.remove("LinkX");
                     tag.remove("LinkY");
                     tag.remove("LinkZ");
+                    tag.remove("LinkEndpoint");
                     player.displayClientMessage(
                             Component.translatable("cable.sovietera.positions.cleared"), true);
                 }
@@ -64,7 +72,8 @@ public class ItemPowerCable extends Item {
         ItemStack stack = context.getItemInHand();
         BlockEntity be = level.getBlockEntity(clickedPos);
 
-        if (!(be instanceof EntityBlockPowerConnector connector)) return InteractionResult.PASS;
+        INetworkNode node = INetworkNode.from(be);
+        if (node == null) return InteractionResult.PASS;
 
         CompoundTag tag = stack.getOrCreateTag();
 
@@ -78,21 +87,22 @@ public class ItemPowerCable extends Item {
 
         // Shift + ПКМ — соединение
         if (player.isShiftKeyDown()) {
-            return handleShiftClick(level, player, clickedPos, connector, tag, stack);
+            return handleShiftClick(level, player, clickedPos, node, tag, stack, context);
         }
 
         return InteractionResult.PASS;
     }
 
     private InteractionResult handleShiftClick(Level level, Player player, BlockPos clickedPos,
-                                               EntityBlockPowerConnector connector, CompoundTag tag, ItemStack stack) {
-
+            INetworkNode node, CompoundTag tag, ItemStack stack, UseOnContext context) {
         if (tag.contains("LinkX")) {
             BlockPos startPos = new BlockPos(tag.getInt("LinkX"), tag.getInt("LinkY"), tag.getInt("LinkZ"));
+            byte startEndpoint = tag.getByte("LinkEndpoint");
             tag.remove("LinkX");
             tag.remove("LinkY");
             tag.remove("LinkZ");
-            if (connector.getConnections().contains(startPos)) {
+            tag.remove("LinkEndpoint");
+            if (node.getConnections().contains(startPos)) {
                 player.displayClientMessage(
                         Component.translatable("cable.sovietera.error.already_connected").withStyle(ChatFormatting.YELLOW), true);
                 return InteractionResult.FAIL;
@@ -105,38 +115,94 @@ public class ItemPowerCable extends Item {
                     return InteractionResult.FAIL;
                 }
 
-                BlockEntity startBe = level.getBlockEntity(startPos);
-                if (startBe instanceof EntityBlockPowerConnector startConnector) {
-                    // Создаём двустороннее соединение
-                    startConnector.addConnection(clickedPos);
-                    startConnector.setChanged();
-                    level.sendBlockUpdated(startPos, startConnector.getBlockState(), startConnector.getBlockState(), 3);
+                INetworkNode startNode = INetworkNode.from(level.getBlockEntity(startPos));
+                if (startNode != null) {
+                    // Determine endpoint for the clicked node (second click)
+                    byte clickedEndpoint = determineEndpoint(level, clickedPos, context.getClickLocation());
 
-                    connector.addConnection(startPos);
-                    connector.setChanged();
-                    level.sendBlockUpdated(clickedPos, connector.getBlockState(), connector.getBlockState(), 3);
+                    // Add connection: start → clicked (with start's endpoint)
+                    addConnectionWithEndpoint(startNode, clickedPos, startEndpoint);
+                    startNode.asBlockEntity().setChanged();
+                    level.sendBlockUpdated(startPos, startNode.asBlockEntity().getBlockState(),
+                            startNode.asBlockEntity().getBlockState(), 3);
+
+                    // Add connection: clicked → start (with clicked's endpoint)
+                    addConnectionWithEndpoint(node, startPos, clickedEndpoint);
+                    node.asBlockEntity().setChanged();
+                    level.sendBlockUpdated(clickedPos, node.asBlockEntity().getBlockState(),
+                            node.asBlockEntity().getBlockState(), 3);
 
                     player.displayClientMessage(
                             Component.translatable("cable.sovietera.positions.connected",
                                     formatBlockPos(startPos), formatBlockPos(clickedPos),
                                     (int) Math.sqrt(distanceSq)).withStyle(ChatFormatting.GREEN), true);
 
-                    // Расходуем 1 кабель (кроме творческого режима)
                     stack.shrink(1);
                     return InteractionResult.SUCCESS;
                 }
             }
         } else {
+            // First click — save position and determine endpoint for longitudinal lamps
+            byte endpoint = determineEndpoint(level, clickedPos, context.getClickLocation());
 
             tag.putInt("LinkX", clickedPos.getX());
             tag.putInt("LinkY", clickedPos.getY());
             tag.putInt("LinkZ", clickedPos.getZ());
+            tag.putByte("LinkEndpoint", endpoint);
 
             player.displayClientMessage(
                     Component.translatable("cable.sovietera.positions.saved", formatBlockPos(clickedPos)), true);
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.FAIL;
+    }
+
+    /**
+     * Determines which endpoint (0 or 1) of a longitudinal lamp the player clicked on.
+     * For non-lamp blocks or non-longitudinal lamps, returns 0.
+     *
+     * @param level         world
+     * @param blockPos      block position
+     * @param clickLocation world-space click location
+     * @return 0 = negative end of long axis, 1 = positive end
+     */
+    private static byte determineEndpoint(Level level, BlockPos blockPos, Vec3 clickLocation) {
+        BlockState state = level.getBlockState(blockPos);
+        if (!(state.getBlock() instanceof BlockLampBase)) return 0;
+
+        // Find the BaseEnumOrientation "facing" property (longitudinal lamps only)
+        for (var prop : state.getProperties()) {
+            if (!"facing".equals(prop.getName())) continue;
+            if (prop instanceof EnumProperty<?> ep && ep.getValueClass() == BaseEnumOrientation.class) {
+                @SuppressWarnings("unchecked")
+                EnumProperty<BaseEnumOrientation> facing = (EnumProperty<BaseEnumOrientation>) ep;
+                BaseEnumOrientation orient = state.getValue(facing);
+                net.minecraft.core.Direction.Axis longAxis = orient.getLongAxis();
+
+                // Local click position within the block (0..1)
+                double lx = clickLocation.x - blockPos.getX();
+                double ly = clickLocation.y - blockPos.getY();
+                double lz = clickLocation.z - blockPos.getZ();
+
+                return switch (longAxis) {
+                    case X -> lx < 0.5 ? (byte) 0 : (byte) 1;
+                    case Z -> lz < 0.5 ? (byte) 0 : (byte) 1;
+                    default -> 0; // Y-axis shouldn't happen for longitudinal lamps
+                };
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * Adds a connection, passing endpoint data for EntityBlockLamp.
+     */
+    private static void addConnectionWithEndpoint(INetworkNode node, BlockPos target, byte endpoint) {
+        if (node instanceof EntityBlockLamp lamp) {
+            lamp.addConnection(target, endpoint);
+        } else {
+            node.addConnection(target);
+        }
     }
 
     private static Component formatBlockPos(BlockPos pos) {

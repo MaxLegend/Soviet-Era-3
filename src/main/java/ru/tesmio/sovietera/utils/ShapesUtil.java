@@ -119,4 +119,55 @@ public class ShapesUtil {
         }
         return result;
     }
+
+    /**
+     * Возвращает вращённую форму для лампы с 8-направленной ориентацией.
+     *
+     * Принимает базовую форму (определённую для NORTH) и возвращает
+     * соответствующую вращённую форму для заданной ориентации.
+     *
+     * Цепочка вращений:
+     *   NORTH  → базовая форма
+     *   SOUTH  → D180
+     *   EAST   → D270
+     *   WEST   → D90
+     *   UP_X   → rotateAroundXCCW (NORTH→потолок, ось X)
+     *   UP_Z   → rotateAroundXCCW + D90 (потолок, ось Z)
+     *   DOWN_X → rotateAroundXCW (NORTH→пол, ось X)
+     *   DOWN_Z → rotateAroundXCW + D90 (пол, ось Z)
+     *
+     * @param baseShape  форма для ориентации NORTH
+     * @param orientation ориентация лампы
+     * @return вращённая VoxelShape
+     */
+    public static VoxelShape rotateForOrientation(VoxelShape baseShape, BaseEnumOrientation orientation) {
+        return switch (orientation) {
+            case NORTH  -> baseShape;
+            case SOUTH  -> ShapesUtil.rotate(baseShape, ShapesUtil.RotationDegree.D180);
+            case EAST   -> ShapesUtil.rotate(baseShape, ShapesUtil.RotationDegree.D270);
+            case WEST   -> ShapesUtil.rotate(baseShape, ShapesUtil.RotationDegree.D90);
+            case UP_X   -> ShapesUtil.rotateAroundXCCW(baseShape);
+            case UP_Z   -> ShapesUtil.rotate(ShapesUtil.rotateAroundXCCW(baseShape), ShapesUtil.RotationDegree.D90);
+            case DOWN_X -> ShapesUtil.rotateAroundXCW(baseShape);
+            case DOWN_Z -> ShapesUtil.rotate(ShapesUtil.rotateAroundXCW(baseShape), ShapesUtil.RotationDegree.D90);
+        };
+    }
+
+    /**
+     * Возвращает вращённую форму для лампы с 6-направленной ориентацией (Direction).
+     *
+     * @param baseShape форма для направления NORTH
+     * @param direction направление крепления
+     * @return вращённая VoxelShape
+     */
+    public static VoxelShape rotateForDirection(VoxelShape baseShape, net.minecraft.core.Direction direction) {
+        return switch (direction) {
+            case NORTH -> baseShape;
+            case SOUTH -> ShapesUtil.rotate(baseShape, ShapesUtil.RotationDegree.D180);
+            case EAST  -> ShapesUtil.rotate(baseShape, ShapesUtil.RotationDegree.D270);
+            case WEST  -> ShapesUtil.rotate(baseShape, ShapesUtil.RotationDegree.D90);
+            case UP    -> ShapesUtil.rotateAroundXCCW(baseShape);
+            case DOWN  -> ShapesUtil.rotateAroundXCW(baseShape);
+        };
+    }
 }

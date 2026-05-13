@@ -5,6 +5,7 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import ru.tesmio.sovietera.blocks.devices.generator.RendererDieselEngine;
+
 import ru.tesmio.sovietera.core.BlockEntitiesSE;
 import ru.tesmio.sovietera.blocks.devices.cable.RendererPowerCable;
 
@@ -12,11 +13,11 @@ import ru.tesmio.sovietera.blocks.devices.cable.RendererPowerCable;
 public class ClientRegistration {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(BlockEntitiesSE.POWER_CONNECTOR.get(),
+        event.registerBlockEntityRenderer(BlockEntitiesSE.ENTITY_BLOCK_POWER_CONNECTOR.get(),
                 RendererPowerCable::new);
-        event.registerBlockEntityRenderer(
-                BlockEntitiesSE.ELECTRO_GENERATOR.get(),
-                RendererDieselEngine::new
-        );
+        event.registerBlockEntityRenderer(BlockEntitiesSE.ENTITY_BLOCK_ELECTRO_GENERATOR.get(),
+                RendererDieselEngine::new);
+        event.registerBlockEntityRenderer(BlockEntitiesSE.ENTITY_BLOCK_LAMP.get(),
+                RendererPowerCable::new); // unified renderer, dedup happens inside by pos comparison
     }
 }

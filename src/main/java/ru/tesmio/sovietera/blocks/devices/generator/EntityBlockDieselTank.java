@@ -36,7 +36,7 @@ public class EntityBlockDieselTank extends BlockEntity {
     private BlockPos controllerPos;
 
     public EntityBlockDieselTank(BlockPos pos, BlockState state) {
-        super(BlockEntitiesSE.DIESEL_TANK.get(), pos, state);
+        super(BlockEntitiesSE.ENTITY_BLOCK_DIESEL_TANK.get(), pos, state);
 
         this.tank = new FluidTank(TANK_CAPACITY_PER_TANK) {
             @Override

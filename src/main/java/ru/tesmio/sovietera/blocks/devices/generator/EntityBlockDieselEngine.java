@@ -52,7 +52,7 @@ public class EntityBlockDieselEngine extends BlockEntity {
     private int burnCounter = 0;
 
     public EntityBlockDieselEngine(BlockPos pos, BlockState state) {
-        super(BlockEntitiesSE.ELECTRO_GENERATOR.get(), pos, state);
+        super(BlockEntitiesSE.ENTITY_BLOCK_ELECTRO_GENERATOR.get(), pos, state);
 
         this.tank = new FluidTank(TANK_CAPACITY) {
             @Override

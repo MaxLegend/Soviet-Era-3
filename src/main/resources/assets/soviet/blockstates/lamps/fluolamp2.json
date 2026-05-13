@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=up_x,powered=false":   { "model": "soviet:block/lamps/fluolamp2",     "x": 180, "y": 0   },
+    "facing=up_x,powered=true":    { "model": "soviet:block/lamps/fluolamp2_on",   "x": 180, "y": 0   },
+    "facing=up_z,powered=false":   { "model": "soviet:block/lamps/fluolamp2",     "x": 180, "y": 90  },
+    "facing=up_z,powered=true":    { "model": "soviet:block/lamps/fluolamp2_on",   "x": 180, "y": 90  },
+    "facing=west,powered=false":   { "model": "soviet:block/lamps/fluolamp2",     "x": 90,  "y": 90  },
+    "facing=west,powered=true":    { "model": "soviet:block/lamps/fluolamp2_on",   "x": 90,  "y": 90  },
+    "facing=south,powered=false":  { "model": "soviet:block/lamps/fluolamp2",     "x": 90,  "y": 0   },
+    "facing=south,powered=true":   { "model": "soviet:block/lamps/fluolamp2_on",   "x": 90,  "y": 0   },
+    "facing=north,powered=false":  { "model": "soviet:block/lamps/fluolamp2",     "x": 90,  "y": 180 },
+    "facing=north,powered=true":   { "model": "soviet:block/lamps/fluolamp2_on",   "x": 90,  "y": 180 },
+    "facing=down_x,powered=false": { "model": "soviet:block/lamps/fluolamp2",     "x": 0,   "y": 180 },
+    "facing=down_x,powered=true":  { "model": "soviet:block/lamps/fluolamp2_on",   "x": 0,   "y": 180 },
+    "facing=down_z,powered=false": { "model": "soviet:block/lamps/fluolamp2",     "x": 0,   "y": 90  },
+    "facing=down_z,powered=true":  { "model": "soviet:block/lamps/fluolamp2_on",   "x": 0,   "y": 90  },
+    "facing=east,powered=false":   { "model": "soviet:block/lamps/fluolamp2",     "x": 90,  "y": 270 },
+    "facing=east,powered=true":    { "model": "soviet:block/lamps/fluolamp2_on",   "x": 90,  "y": 270 }
+  }
+}
